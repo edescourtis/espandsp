@@ -5,7 +5,6 @@
 #include <arpa/inet.h>
 #include <spandsp.h>
 #include <spandsp/g711.h>
-#include <spandsp/private/g711.h> /* FIX: don't depend of size of g711_state_t */
 #include "erl_nif.h"
 
 static ErlNifResourceType *spandsp_g711_type = NULL;
@@ -51,7 +50,6 @@ static ERL_NIF_TERM g711_open_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM a
          else return enif_make_badarg(env);
 
     state = (g711_state_t *)enif_alloc_resource(spandsp_g711_type, sizeof(g711_state_t));
-    (void)memset(state, 0, sizeof(g711_state_t));
     if(g711_init(state, mode) == NULL){
         g711_release(state);
         enif_release_resource(state);
