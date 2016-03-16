@@ -217,6 +217,7 @@ static ERL_NIF_TERM g722_encode_init_nif(ErlNifEnv *env, int argc, const ERL_NIF
 
 static ERL_NIF_TERM g722_encode_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
+    int l;
     size_t len;
     g722_encode_state_t *state = NULL;
     ErlNifBinary bin;
@@ -235,10 +236,10 @@ static ERL_NIF_TERM g722_encode_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     len = bin.size / sizeof(int16_t);
     if(len > (size_t)INT_MAX) return enif_make_badarg(env);
 
-    if(!enif_alloc_binary(len, &out_bin)) return enif_make_badarg(env);
+    if(!enif_alloc_binary(bin.size * 4, &out_bin)) return enif_make_badarg(env);
 
-    (void)g722_encode(state, (uint8_t *)out_bin.data, (int16_t *)bin.data, (int)len);
-
+    l = g722_encode(state, (uint8_t *)out_bin.data, (int16_t *)bin.data, (int)len);
+    out_bin.size = l;
     return enif_make_binary(env, &out_bin);
 }
 
@@ -314,6 +315,7 @@ static ERL_NIF_TERM g722_decode_init_nif(ErlNifEnv *env, int argc, const ERL_NIF
 static ERL_NIF_TERM g722_decode_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
     size_t len;
+    int l;
     g722_decode_state_t *state = NULL;
     ErlNifBinary bin;
     ErlNifBinary out_bin;
@@ -328,12 +330,13 @@ static ERL_NIF_TERM g722_decode_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM
     if(!enif_inspect_binary(env, argv[1], &bin))
         return enif_make_badarg(env);
 
-    len = bin.size * sizeof(int16_t);
+    len = bin.size * 4;
     if(len > (size_t)INT_MAX) return enif_make_badarg(env);
 
     if(!enif_alloc_binary(len, &out_bin)) return enif_make_badarg(env);
 
-    (void)g722_decode(state, (int16_t *)out_bin.data, (uint8_t *)bin.data, (int)bin.size);
+    l = g722_decode(state, (int16_t *)out_bin.data, (uint8_t *)bin.data, (int)bin.size);
+    out_bin.size = l * sizeof(int16_t);
     return enif_make_binary(env, &out_bin);
 }
 
